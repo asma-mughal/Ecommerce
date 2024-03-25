@@ -1,10 +1,10 @@
 
 import express from "express"
 import dotenv from 'dotenv';
-import { connectDB } from "./config/db.js";
+import { connectDB } from "./api/config/db.js";
 import UserRoute from './routes/userRoutes.js';
 import mongoose from "mongoose";
-import { requireSignIn } from "./middleware/authMiddleware.js";
+import { requireSignIn } from "./api/middleware/authMiddleware.js";
 import { testController } from "./controllers/UserController.js";
 dotenv.config()
 const app = express()
