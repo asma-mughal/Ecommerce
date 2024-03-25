@@ -1,6 +1,6 @@
 
 
-import { comparePassword, hashPassword } from '../api/helpers/authHelper.js';
+import { comparePassword, hashPassword } from '../helpers/authHelper.js';
 import { User } from './models/userModal.js';
 import JWT from 'jsonwebtoken';
 export const registerUser = async (req, res) => {

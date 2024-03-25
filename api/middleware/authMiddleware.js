@@ -1,5 +1,5 @@
 import JWT from "jsonwebtoken"
-import { User } from '../../controllers/models/userModal.js';
+import { User } from '../controllers/models/userModal.js';
 export const requireSignIn =  (req, res, next) => {
     try {
         
