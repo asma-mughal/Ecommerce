@@ -7,6 +7,7 @@ import { testController } from "./api/controllers/UserController.js";
 
 import UserRoute from "./api/routes/userRoutes.js";
 import CategoryRoute from "./api/routes/categoryRoutes.js";
+import ProductRoute from './api/routes/productRoutes.js';
 const app = express();
 
 app.get("/", (req, res) => {
@@ -24,6 +25,7 @@ app.use(cors(corsOptions));
 
 app.use("/auth", UserRoute);
 app.use("/category", CategoryRoute);
+app.use("/product", ProductRoute);
 app.use("/test", requireSignIn, testController);
 
 const PORT = process.env.PORT || 8080;

@@ -14,7 +14,7 @@ export const addCategory = async (req, res) => {
       name: name,
       slug: slugify(name),
     }).save();
-    console.log(savedCategory);
+    //console.log(savedCategory);
     return res
       .status(200)
       .json({ message: "Category is Saved", success: true, savedCategory });
