@@ -1,8 +1,7 @@
 import JWT from "jsonwebtoken"
-import { User } from '../controllers/models/userModal.js';
+import { User } from '../models/userModal.js';
 export const requireSignIn =  (req, res, next) => {
     try {
-        
         const decode = JWT.verify(req.headers.authorization, 'test')
         req.user = decode;
         next()
@@ -13,7 +12,7 @@ export const requireSignIn =  (req, res, next) => {
 }
 export const isAdmin = async(req, res, next) => {
     try {
-        const user = await User.findById(req.user._id)
+        const user = await User.findById(req?.user._id)
         if (user.role !== 1)
         {
             return res.status(401).json({message : "Unauthorized Access"})

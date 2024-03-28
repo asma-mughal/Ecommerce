@@ -1,12 +1,12 @@
 
 
 import { comparePassword, hashPassword } from '../helpers/authHelper.js';
-import { User } from './models/userModal.js';
+import { User } from '../models/userModal.js';
 import JWT from 'jsonwebtoken';
 export const registerUser = async (req, res) => {
-    const { name, email, password, address, phone } = req.body;
+    const { name, email, password, address, phone , question} = req.body;
     try {
-      if (!name || !email || !password || !address || !phone) {
+      if (!name || !email || !password || !address || !phone || !question) {
         return res.status(400).json({ message: "All fields are required" });
       }
         const exsistingUser = await User.findOne({ email })
@@ -21,6 +21,7 @@ export const registerUser = async (req, res) => {
         password: hashedPassword,
         address,
         phone,
+        question
       });
       await newUser.save();
         return res.status(201).json({
@@ -59,8 +60,12 @@ export const loginUser = async (req, res) => {
         
         return res.status(201).json({
             message: "User LoggedIn successfully", user: {
-                name: foundUser?.name,
-                email : foundUser?.email
+              _id: foundUser?._id,
+              name: foundUser?.name,
+              email: foundUser?.email,
+              phone: foundUser?.phone,
+              adddress: foundUser?.address,
+              role: foundUser?.role,
       }, token  });
             
     } catch (err)
@@ -76,3 +81,28 @@ export const testController = (req, res) => {
       res.send({ error });
     }
   };
+export const forgotPasswordController = async(req, res) => {
+  const { email, newpassword } = req.body;
+  //console.log(req.body)
+  
+  try {
+    if (!email || !newpassword)
+        {
+            return res.status(404).json({message : "Email and password is required"})
+        }
+    const user = User.findOne({ email })
+    if (!user) {
+      res.status(400).json({message : "User Not Found"})
+    }
+    const hashedPassword = await hashPassword(newpassword);
+    const updatedUser = await User.findByIdAndUpdate(user?._id, { password: hashedPassword })
+    res.status(200).json({
+      message: "Password Reset succesfully",
+      success: true
+    })
+  } catch (err)
+  {
+    console.log("Error", err)
+    //console.log(err)
+  }
+}
