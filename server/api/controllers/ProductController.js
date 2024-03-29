@@ -1,37 +1,38 @@
 import slugify from "slugify";
 import { Product } from "../models/productModel.js";
 import fs from "fs";
-import { Category } from "../models/categoryModal.js";
 import mongoose from "mongoose";
 export const addProduct = async (req, res) => {
   try {
-    const { name, description, price, catgeory, quantity, shipping } =
-      req.fields;
+    const { name, description, price, catgeory, quantity   } = req.fields;
     const { photo } = req.files;
-    if (
-      !name ||
-      !description ||
-      !price ||
-      !catgeory ||
-      !quantity ||
-      !shipping ||
-      !photo
-    ) {
-      return res.status(401).json({ message: "All feilds are required" ,success: false });
+
+    if (!name || !description || !price || !catgeory || !quantity) {
+      return res.status(400).json({ message: "All fields are required", success: false });
     }
+
     if (!mongoose.Types.ObjectId.isValid(catgeory)) {
-        return res.status(400).json({ message: "Invalid category ID", success: false });
-      }
-    const products = new Product({ ...req.fields, slug: slugify(name) });
-    if (photo) {
-      products.photo.data = fs.readFileSync(photo.path);
-      products.photo.contentType = photo.type;
+      return res.status(400).json({ message: "Invalid category ID", success: false });
     }
-    await products.save();
-    return res.status(200).json({ message: "Product is Saved", success: true });
+
+    const product = new Product({ ...req.fields, slug: slugify(name) });
+
+    if (photo) {
+      product.photo.data = fs.readFileSync(photo.path);
+      product.photo.contentType = photo.type;
+    } else {
+      return res.status(400).json({ message: "Photo field is required", success: false });
+    }
+
+    await product.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Product Created Successfully",
+    });
   } catch (err) {
     console.log(err);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error in Creation of Product",
     });
@@ -40,13 +41,13 @@ export const addProduct = async (req, res) => {
 
 export const getAllProducts = async (req, res) => {
   try {
-    const allProducts = await Product.find({})
+    const allProducts = await Product.find({}).lean()
       .select("-photo")
       .limit(12)
       .sort({ createdAt: -1 });
     return res
       .status(200)
-      .json({ message: "Product is Saved", success: true, allProducts });
+      .json({ message: "Products", success: true, allProducts });
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -59,7 +60,7 @@ export const getAllProducts = async (req, res) => {
 export const getSingleProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const uniqueProduct = await Product.find({ _id: id })
+    const uniqueProduct = await Product.find({ _id: id }).lean()
       .select("-photo")
       .limit(12)
       .sort({ createdAt: -1 });
@@ -102,19 +103,9 @@ export const updateProduct = async (req, res) => {
     try {
         const { name, description, price, catgeory, quantity, shipping } =
           req.fields;
-        const { photo } = req.files;
+      const { photo } = req.files;
+      console.log(name, description, price, catgeory, quantity)
         const {id } = req.params
-        if (
-          !name ||
-          !description ||
-          !price ||
-          !catgeory ||
-          !quantity ||
-          !shipping ||
-          !photo
-        ) {
-          return res.status(401).json({ message: "All feilds are required" ,success: false });
-        }
         if (!mongoose.Types.ObjectId.isValid(catgeory)) {
             return res.status(400).json({ message: "Invalid category ID", success: false });
           }
@@ -128,16 +119,113 @@ export const updateProduct = async (req, res) => {
             products.photo.contentType = photo.type;
           }
           await products.save();
-          res.status(201).send({
+          return res.status(201).send({
             success: true,
             message: "Product Updated Successfully",
             products,
           });
       } catch (err) {
         console.log(err);
-        res.status(500).json({
+        return res.status(500).json({
           success: false,
           message: "Error in Creation of Product",
         });
       }
+}
+export const productPhotoController = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).select("photo");
+    if (product.photo.data) {
+      res.set("Content-type", product.photo.contentType);
+      return res.status(200).send(product.photo.data);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Erorr while getting photo",
+      error,
+    });
+  }
+};
+
+
+export const productFilter = async(req, res) => {
+  try {
+    const { checked, radio } = req.body;
+   
+    let args = {}
+    if (checked?.length > 0) args.catgeory = checked;
+    if (radio?.length ==2) args.price = { $gte: radio[0], $lte: radio[1] }
+    //console.log(args)
+    const products = await Product.find(args).select("name price photo description").lean()
+    return res.status(200).json({
+      success: true,
+      message: "All products are here",
+      products
+    })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({
+      success: "false",
+      message :"error filtering the products"
+    })
+
+  }
+}
+export const productCount = async(req, res) => {
+  try {
+    const total = await Product.find({}).estimatedDocumentCount()
+    return res.status(200).json({
+      message: "Counted the products",
+      success: true,
+      total
+    })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({
+      success: "false",
+      message :"Error Counting the products"
+    })
+
+  }
+}
+
+export const productList = async(req, res) => {
+  try {
+    const perPage = 6;
+    const page = req.params.page ? req.params.page : 1
+    const products = await Product.find({}).select("-photo").skip((page - 1) * perPage).limit(perPage).sort({createdAt : -1}).lean()
+    return res.status(200).json({
+      message: "Counted the products",
+      success: true,
+      products
+    })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({
+      success: "false",
+      message :"Error retrieving the products"
+    })
+
+  }
+}
+export const searchProduct = async(req, res) => {
+  try {
+    const { keyword } = req.params;
+    const results = await Product.find({
+      $or: [
+        {name : {$regex : keyword, $options:'i'}}, //search a word and don't care about case sesnsitive
+        {description : {$regex : keyword, $options : 'i'}}
+      ]
+    }).select("-photo").lean()
+    return res.json(results)
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Erorr while Searching",
+      error,
+    });
+  }
 }
