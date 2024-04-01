@@ -5,11 +5,13 @@ import {
   addProduct,
   deleteProduct,
   getAllProducts,
+  getProductByCat,
   getSingleProduct,
   productCount,
   productFilter,
   productList,
   productPhotoController,
+  relatedProduct,
   searchProduct,
   updateProduct,
 } from "../controllers/ProductController.js";
@@ -23,5 +25,7 @@ router.get("/", getAllProducts);
 router.post("/product-filter", productFilter);
 router.get("/product-count", productCount);
 router.get("/product-list/:page", productList)
-router.get("/search/:keyword",searchProduct )
+router.get("/search/:keyword", searchProduct)
+router.get("/related-product/:pid/:cid", relatedProduct)
+router.get("/product-category/:slug",getProductByCat )
 export default router;

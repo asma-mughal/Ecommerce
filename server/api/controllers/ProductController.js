@@ -2,16 +2,17 @@ import slugify from "slugify";
 import { Product } from "../models/productModel.js";
 import fs from "fs";
 import mongoose from "mongoose";
+import { Category } from "../models/categoryModal.js";
 export const addProduct = async (req, res) => {
   try {
-    const { name, description, price, catgeory, quantity   } = req.fields;
+    const { name, description, price, category, quantity   } = req.fields;
     const { photo } = req.files;
 
-    if (!name || !description || !price || !catgeory || !quantity) {
+    if (!name || !description || !price || !category || !quantity) {
       return res.status(400).json({ message: "All fields are required", success: false });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(catgeory)) {
+    if (!mongoose.Types.ObjectId.isValid(category)) {
       return res.status(400).json({ message: "Invalid category ID", success: false });
     }
 
@@ -101,12 +102,12 @@ export const deleteProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
     try {
-        const { name, description, price, catgeory, quantity, shipping } =
+        const { name, description, price, category, quantity, shipping } =
           req.fields;
       const { photo } = req.files;
-      console.log(name, description, price, catgeory, quantity)
+      console.log(name, description, price, category, quantity)
         const {id } = req.params
-        if (!mongoose.Types.ObjectId.isValid(catgeory)) {
+        if (!mongoose.Types.ObjectId.isValid(category)) {
             return res.status(400).json({ message: "Invalid category ID", success: false });
           }
           const products =  await Product.findByIdAndUpdate(
@@ -225,6 +226,50 @@ export const searchProduct = async(req, res) => {
     return res.status(500).send({
       success: false,
       message: "Erorr while Searching",
+      error,
+    });
+  }
+}
+export const relatedProduct = async(req, res) => {
+  try {
+    const { pid, cid } = req.params;
+    const products = await Product
+      .find({
+        category: cid,
+        _id: { $ne: pid },
+      })
+      .select("-photo")
+      .limit(3)
+    res.status(200).send({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.log(error, "Error at realted priodycts");
+    res.status(400).send({
+      success: false,
+      message: "error while geting related product",
+      error,
+    });
+  }
+}
+export const getProductByCat = async(req, res) => {
+  try {
+    console.log( req.params.slug )
+    const category = await Category.findOne({ slug: req.params.slug })
+    console.log(category)
+    const product = await Product.find({ category }).lean()
+    //console.log(product)
+    res.status(200).send({
+      success: true,
+      category,
+      product
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({
+      success: false,
+      message: "error while geting products",
       error,
     });
   }

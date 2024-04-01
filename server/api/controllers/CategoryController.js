@@ -1,5 +1,6 @@
 import slugify from "slugify";
 import { Category } from "../models/categoryModal.js";
+import mongoose from "mongoose";
 export const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
@@ -49,15 +50,16 @@ export const updateCategory = async (req, res) => {
     });
   }
 };
-export const getOneCategory = async (req, res) => {
+export const getSingleCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) {
-      return res.status(401).json({ message: "Id is required" });
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid category ID", success: false });
     }
     const exsistingCategory = await Category.findOne({ _id: id });
     if (!exsistingCategory) {
-      return res.status(401).json({ message: "Category has not found" });
+      return res.status(400).json({ message: "Category has not found" });
     }
     res.status(200).send({
       success: true,
