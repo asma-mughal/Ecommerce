@@ -7,6 +7,8 @@ import {
   getAllProducts,
   getProductByCat,
   getSingleProduct,
+  paymentBrainTree,
+  paymentBrainTreeToken,
   productCount,
   productFilter,
   productList,
@@ -27,5 +29,7 @@ router.get("/product-count", productCount);
 router.get("/product-list/:page", productList)
 router.get("/search/:keyword", searchProduct)
 router.get("/related-product/:pid/:cid", relatedProduct)
-router.get("/product-category/:slug",getProductByCat )
+router.get("/product-category/:slug", getProductByCat)
+router.get("/braintree/token", paymentBrainTreeToken)
+router.get("/braintree/payment",paymentBrainTree )
 export default router;

@@ -3,6 +3,16 @@ import { Product } from "../models/productModel.js";
 import fs from "fs";
 import mongoose from "mongoose";
 import { Category } from "../models/categoryModal.js";
+import braintree from "braintree";
+import { Order } from "../models/orderModel.js";
+var gateway = new braintree.BraintreeGateway({
+  environment: braintree.Environment.Sandbox,
+  merchantId: "cpzstv4xwcwsxn5t",
+  publicKey: "xgxzr58hjbz3rm3h",
+  privateKey: "2171dec631afc7d17fb8f4af3c1f5e45",
+});
+
+
 export const addProduct = async (req, res) => {
   try {
     const { name, description, price, category, quantity   } = req.fields;
@@ -154,11 +164,9 @@ export const productPhotoController = async (req, res) => {
 export const productFilter = async(req, res) => {
   try {
     const { checked, radio } = req.body;
-   
     let args = {}
-    if (checked?.length > 0) args.catgeory = checked;
+    if (checked?.length > 0) args.category = checked;
     if (radio?.length ==2) args.price = { $gte: radio[0], $lte: radio[1] }
-    //console.log(args)
     const products = await Product.find(args).select("name price photo description").lean()
     return res.status(200).json({
       success: true,
@@ -255,9 +263,9 @@ export const relatedProduct = async(req, res) => {
 }
 export const getProductByCat = async(req, res) => {
   try {
-    console.log( req.params.slug )
+    //console.log( req.params.slug )
     const category = await Category.findOne({ slug: req.params.slug })
-    console.log(category)
+    //console.log(category)
     const product = await Product.find({ category }).lean()
     //console.log(product)
     res.status(200).send({
@@ -272,5 +280,50 @@ export const getProductByCat = async(req, res) => {
       message: "error while geting products",
       error,
     });
+  }
+}
+export const paymentBrainTreeToken = async(req, res) => {
+  try {
+    gateway.clientToken.generate({}, function (err, response) {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.send(response);
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+export const paymentBrainTree = async(req, res) => {
+  try {
+    const { nonce, cart } = req.body;
+    let total = 0;
+    cart.map((i) => {
+      total += i.price;
+    });
+    let newTransaction = gateway.transaction.sale(
+      {
+        amount: total,
+        paymentMethodNonce: nonce,
+        options: {
+          submitForSettlement: true,
+        },
+      },
+      function (error, result) {
+        if (result) {
+          const order = new Order({
+            products: cart,
+            payment: result,
+            buyer: req.user._id,
+          }).save();
+          res.json({ ok: true });
+        } else {
+          res.status(500).send(error);
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
   }
 }
