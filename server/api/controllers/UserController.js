@@ -1,6 +1,7 @@
 
 
 import { comparePassword, hashPassword } from '../helpers/authHelper.js';
+import { Order } from '../models/orderModel.js';
 import { User } from '../models/userModal.js';
 import JWT from 'jsonwebtoken';
 export const registerUser = async (req, res) => {
@@ -108,10 +109,9 @@ export const forgotPasswordController = async(req, res) => {
 }
 export const updateProfileController = async (req, res) => {
   try {
-
     const { name, email, password, address, phone, id } = req.body;
     const user = await User.findById(id);
-    if (!User)
+    if (!user)
     {
       return res.status(404).json({message :"User not found" })
     }
@@ -140,4 +140,18 @@ export const updateProfileController = async (req, res) => {
     console.log(error)
     return res.status(400).json({ message: "An error occurred while updating user" });
   }
+}
+export const getOrders = async(req,res) => {
+    try {
+      const orders = await Order
+        .find({ buyer: req.params.id })
+      res.json(orders);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        success: false,
+        message: "Error WHile Geting Orders",
+        error,
+      });
+    }
 }
