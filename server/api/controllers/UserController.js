@@ -142,15 +142,51 @@ export const updateProfileController = async (req, res) => {
   }
 }
 export const getOrders = async(req,res) => {
-    try {
+  try {
+      //req.params.id
       const orders = await Order
-        .find({ buyer: req.params.id })
+      .find({ buyer: req.params.id })
+      .populate("products", "-photo")
+        .populate("buyer", "name");
+    
       res.json(orders);
     } catch (error) {
       console.log(error);
       res.status(500).send({
         success: false,
         message: "Error WHile Geting Orders",
+        error,
+      });
+    }
+}
+export const getAllOrders = async(req,res) => {
+  try {
+    const orders = await Order
+      .find({})
+      .populate("products", "-photo")
+      .populate("buyer", "name")
+      .lean()
+      res.json(orders);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        success: false,
+        message: "Error WHile Geting Orders",
+        error,
+      });
+    }
+}
+export const changeOrderStatus = async(req,res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const orders = await Order.findByIdAndUpdate(id, { status })
+    res.json(orders)
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        success: false,
+        message: "Error WHile Updating Orders",
         error,
       });
     }

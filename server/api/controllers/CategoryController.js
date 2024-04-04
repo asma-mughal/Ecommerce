@@ -50,28 +50,6 @@ export const updateCategory = async (req, res) => {
     });
   }
 };
-export const getSingleCategory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid category ID", success: false });
-    }
-    const exsistingCategory = await Category.findOne({ _id: id });
-    if (!exsistingCategory) {
-      return res.status(400).json({ message: "Category has not found" });
-    }
-    res.status(200).send({
-      success: true,
-      exsistingCategory,
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Error in Category",
-    });
-  }
-};
 
 export const getAllCategory = async (req, res) => {
   try {

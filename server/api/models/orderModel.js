@@ -4,13 +4,13 @@ const orderSchema = mongoose.Schema({
     products: [
         {
             type: mongoose.ObjectId,
-            ref:"Product"
+            ref:"productEcommerce"
         }
     ],
     payment: {},
     buyer: {
         type: mongoose.ObjectId,
-        ref:"User"
+        ref:"userEcommerce"
     },
     status: {
         type: String, 

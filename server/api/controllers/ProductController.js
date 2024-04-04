@@ -73,6 +73,7 @@ export const getSingleProduct = async (req, res) => {
     const { id } = req.params;
     const uniqueProduct = await Product.find({ _id: id }).lean()
       .select("-photo")
+      .populate('category')
       .limit(12)
       .sort({ createdAt: -1 });
     return res
@@ -247,6 +248,7 @@ export const relatedProduct = async(req, res) => {
         _id: { $ne: pid },
       })
       .select("-photo")
+      .populate('category')
       .limit(3)
     res.status(200).send({
       success: true,
