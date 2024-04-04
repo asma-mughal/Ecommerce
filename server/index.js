@@ -21,7 +21,7 @@ const corsOptions = {
   origin: ["http://localhost:3000", "http://example.com"],
 };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use("/auth", UserRoute);
 app.use("/category", CategoryRoute);
